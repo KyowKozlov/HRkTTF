@@ -917,7 +917,7 @@ RunService.Heartbeat:Connect(function()
                     
                     print("[ESP] Checking " .. p.DisplayName .. ": repNum=" .. tostring(repNum) .. ", threshold=" .. tostring(TARGET_REP_THRESHOLD) .. ", isElite=" .. tostring(repNum >= TARGET_REP_THRESHOLD))
                     
-                    -- Se REP >= TARGET_REP_THRESHOLD -> modo REP RGB elite (MOSTRA)
+                    -- Se REP >= TARGET_REP_THRESHOLD -> modo REP RGB elite
                     if repNum and repNum >= TARGET_REP_THRESHOLD then
                         print("[ESP ELITE] " .. p.DisplayName .. " é ELITE! REP: " .. tostring(repNum))
                         
@@ -932,12 +932,20 @@ RunService.Heartbeat:Connect(function()
                         data.power.TextSize = 14  -- metade do tamanho
                         data.power.Position = UDim2.new(0, 0, 0.25, 0)
                     else
-                        -- NÃO é elite -> DESTROI o billboard (não aparecer nada)
-                        print("[ESP FILTERED] " .. p.DisplayName .. " REP (" .. tostring(repNum) .. ") < threshold - Removendo billboard")
-                        if data.billboard then
-                            pcall(function() data.billboard:Destroy() end)
-                        end
-                        ESP_Players[p] = nil
+                        -- Modo normal: nome + poder formatado (SEM linha de REP vazia)
+                        local nameColor = getReputationColor(p, repNum or 0)
+                        
+                        data.name.Visible = true
+                        data.name.Text = p.DisplayName
+                        data.name.TextColor3 = nameColor
+                        data.name.TextSize = 16
+
+                        -- Mostra poder/stats do player (sem REP para não-elites)
+                        data.power.Visible = true
+                        data.power.Text = ESP_Power_Cache[p] or "?"
+                        data.power.TextColor3 = Color3.new(1,1,1)
+                        data.power.TextSize = 16
+                        data.power.Position = UDim2.new(0, 0, 0.5, 0)
                     end
                 end)
             end
