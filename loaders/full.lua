@@ -195,30 +195,61 @@ local function parseHumanNumber(val)
 end
 
 local function getRespectValue(targetPlayer)
+    if not targetPlayer then return 0 end
+    
+    -- Tenta atributo primeiro
     local attr = targetPlayer:GetAttribute("Respect")
     if attr ~= nil then
-        if type(attr) == "number" then return attr end
+        if type(attr) == "number" then 
+            print("[getRespectValue] Found via Attribute: " .. tostring(attr))
+            return attr 
+        end
         local n = parseHumanNumber(attr)
-        if n then return n end
+        if n then 
+            print("[getRespectValue] Found via Attribute (parsed): " .. tostring(n))
+            return n 
+        end
         return tonumber(attr) or 0
     end
 
+    -- Procura em containers conhecidos
     local containers = { targetPlayer:FindFirstChild("AttrConfig"), targetPlayer:FindFirstChild("leaderstats") }
     for _, folder in ipairs(containers) do
         if folder then
             local stat = folder:FindFirstChild("Respect")
             if stat then
                 if stat:IsA("IntValue") or stat:IsA("NumberValue") then
+                    print("[getRespectValue] Found in " .. folder.Name .. " as Value: " .. tostring(stat.Value))
                     return stat.Value
                 elseif stat:IsA("StringValue") then
                     local parsed = parseHumanNumber(stat.Value)
-                    if parsed then return parsed end
+                    if parsed then 
+                        print("[getRespectValue] Found in " .. folder.Name .. " as StringValue (parsed): " .. tostring(parsed))
+                        return parsed 
+                    end
                     return tonumber(stat.Value) or 0
                 end
             end
         end
     end
+    
+    -- Se não encontrou, procura por qualquer thing que tenha "Respect" no nome
+    print("[getRespectValue] Normal search failed for " .. targetPlayer.DisplayName .. ", searching all descendants...")
+    for _, descendant in pairs(targetPlayer:GetDescendants()) do
+        if descendant.Name:lower():find("respect") then
+            print("[getRespectValue] Found descendant with respect: " .. descendant.Name .. " (" .. descendant.ClassName .. ")")
+            if descendant:IsA("IntValue") or descendant:IsA("NumberValue") then
+                print("[getRespectValue] Final value from descendant: " .. tostring(descendant.Value))
+                return descendant.Value
+            elseif descendant:IsA("StringValue") then
+                local parsed = parseHumanNumber(descendant.Value)
+                if parsed then return parsed end
+                return tonumber(descendant.Value) or 0
+            end
+        end
+    end
 
+    print("[getRespectValue] No respect found for " .. targetPlayer.DisplayName)
     return 0
 end
 
@@ -735,7 +766,8 @@ task.spawn(function()
                     local val = findEnemyPower(p)
                     ESP_Power_Cache[p] = val and formatNumber(val) or "?"
                 end
-                local repVal = findPlayerStat(p, "Respect")
+                -- Atualiza cache de reputation usando getRespectValue()
+                local repVal = getRespectValue(p)
                 ESP_Rep_Cache[p] = repVal or 0
             end
             print("[ESP Cache] Updated for " .. playerCount .. " players, ESP enabled: " .. tostring(getgenv().HNk.ESP))
@@ -863,13 +895,32 @@ RunService.Heartbeat:Connect(function()
             
             if data then
                 pcall(function()
+                    -- Busca reputação com parsing robusto
                     local playerReputation = getRespectValue(p)
                     local repNum = playerReputation
-                    if type(repNum) ~= "number" then repNum = parseHumanNumber(repNum) or tonumber(repNum) end
-                    if repNum then repNum = math.abs(repNum) end
+                    
+                    -- Debug print
+                    if not ESP_Players[p]._debugPrinted then
+                        print("[ESP DEBUG] Player: " .. p.DisplayName .. ", Raw Rep: " .. tostring(playerReputation) .. ", Type: " .. type(playerReputation))
+                        ESP_Players[p]._debugPrinted = true
+                    end
+                    
+                    -- Normaliza para número
+                    if type(repNum) ~= "number" then 
+                        repNum = parseHumanNumber(repNum) or tonumber(repNum) 
+                    end
+                    if repNum then 
+                        repNum = math.abs(repNum) 
+                    else
+                        repNum = 0
+                    end
+                    
+                    print("[ESP] Checking " .. p.DisplayName .. ": repNum=" .. tostring(repNum) .. ", threshold=" .. tostring(TARGET_REP_THRESHOLD) .. ", isElite=" .. tostring(repNum >= TARGET_REP_THRESHOLD))
                     
                     -- Se REP >= TARGET_REP_THRESHOLD -> modo REP RGB elite
                     if repNum and repNum >= TARGET_REP_THRESHOLD then
+                        print("[ESP ELITE] " .. p.DisplayName .. " é ELITE! REP: " .. tostring(repNum))
+                        
                         -- Oculta nome
                         data.name.Visible = false
                         data.name.Text = ""
