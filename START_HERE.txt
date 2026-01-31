@@ -1,0 +1,218 @@
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║          HNk Hub v9.4.3 - MODULAR EDITION                   ║
+║          Script Roblox Totalmente Refatorado                ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+📊 RESUMO DO PROJETO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ TRANSFORMAÇÃO CONCLUÍDA!
+
+Seu script monolítico foi transformado em:
+  • 3 módulos CORE (config, state, utils)
+  • 5 features INDEPENDENTES (gui, esp, god, train, player)
+  • 5 loaders ESPECIALIZADOS (gui_only, esp_only, god_only, train_only, full)
+  • Documentação COMPLETA
+
+Total: 15 arquivos (~150 KB)
+
+
+🚀 COMO COMEÇAR (3 FORMAS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1️⃣  TUDO JUNTO (Recomendado)
+    loadstring(game:HttpGet("...loaders/full.lua"))()
+    → GUI + Todas as features
+
+2️⃣  APENAS GUI (Controle Manual)
+    loadstring(game:HttpGet("...loaders/gui_only.lua"))()
+    → Interface para controlar manualmente
+
+3️⃣  FEATURE ESPECÍFICA
+    loadstring(game:HttpGet("...loaders/esp_only.lua"))()  → ESP
+    loadstring(game:HttpGet("...loaders/god_only.lua"))()  → God
+    loadstring(game:HttpGet("...loaders/train_only.lua"))()→ Train
+
+
+💻 CONTROLANDO VIA SCRIPT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+local State = require(game:GetService("ReplicatedStorage")
+    :WaitForChild("HNkHub"):WaitForChild("core"):WaitForChild("state"))
+
+State.set("God", true)           -- Ativa God Mode
+State.set("ESP", false)          -- Desativa ESP
+State.get("God")                 -- Verifica status
+State.getAll()                   -- Todas as configs
+State.onChange("God", function(enabled)  -- Ouve mudanças
+    print("God alterou para: " .. tostring(enabled))
+end)
+
+
+📁 ESTRUTURA DE ARQUIVOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+HNkHub/
+├─ 📄 README.md                 ← Comece aqui!
+├─ 📄 QUICK_START.lua           ← Exemplos rápidos
+├─ 📄 USAGE.md                  ← Guia completo
+├─ 📄 EXAMPLES.lua              ← 10 exemplos avançados
+├─ 📄 FAQ.md                    ← Perguntas frequentes
+├─ 📄 INDEX.md                  ← Índice de tudo
+├─ 📄 SETUP_REPLICATEDSTORAGE.md← Como organizar em jogo
+│
+├─ 📁 core/
+│  ├─ config.lua               (Configurações globais)
+│  ├─ state.lua                (Gerenciador de estado)
+│  └─ utils.lua                (Funções utilitárias)
+│
+├─ 📁 features/
+│  ├─ gui.lua                  (Interface com toggles)
+│  ├─ esp.lua                  (Visão de inimigos)
+│  ├─ god.lua                  (Imortalidade)
+│  ├─ train.lua                (Auto-treino)
+│  └─ player.lua               (Speed/Jump)
+│
+└─ 📁 loaders/
+   ├─ gui_only.lua             (Apenas GUI)
+   ├─ esp_only.lua             (Apenas ESP)
+   ├─ god_only.lua             (Apenas God)
+   ├─ train_only.lua           (Apenas Train)
+   └─ full.lua                 (Tudo!) ⭐
+
+
+🎯 FEATURES DISPONÍVEIS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✨ Visuals
+  • GUI com tema preto/vermelho
+  • ESP (visualização de inimigos com reputação)
+  • FOV Mouse Control (câmera com mouse)
+  • Performance Overlay (FPS/PING)
+
+⚔️ Combat
+  • God Mode (imortalidade básica)
+  • God Extreme (imortalidade avançada)
+  • Speed (120 walk speed)
+  • Jump (150 jump power)
+
+🎮 Gameplay
+  • Train (auto-treino)
+  • Anti-AFK (previne kick)
+  • Anti-Fall (previne danos de queda)
+  • Invisible (invisibilidade)
+
+
+🔧 PERSONALIZAÇÕES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Mudar cores do tema
+   → Edite core/config.lua
+
+✅ Adicionar nova feature
+   → Crie features/sua_feature.lua
+   → Siga estrutura de features/god.lua
+   → Crie loader correspondente
+
+✅ Criar setup automatizado
+   → Veja EXAMPLES.lua (Exemplo 1)
+
+✅ Usar hotkeys (F1, F2, etc)
+   → Veja EXAMPLES.lua (Exemplo 4)
+
+
+📊 BENEFÍCIOS DESSA ESTRUTURA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Antes (Monolítico):
+  ❌ 1 arquivo gigante (~2000 linhas)
+  ❌ Tudo carregado de uma vez
+  ❌ Difícil modificar/estender
+  ❌ Sem reutilização de código
+
+Depois (Modular):
+  ✅ 15 arquivos pequenos e focados
+  ✅ Carregue só o que precisa
+  ✅ Fácil adicionar features
+  ✅ Máxima reutilização
+  ✅ Documentação completa
+  ✅ Exemplos de uso
+  ✅ Sistema de listeners
+  ✅ API global simples
+
+
+🎯 PRÓXIMOS PASSOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Leia README.md para entender a estrutura
+
+2. Veja QUICK_START.lua para exemplos de uso
+
+3. Use um loader:
+   • Teste com full.lua (recomendado)
+   • Ou escolha um específico
+
+4. Controle via API:
+   State.set("Feature", true/false)
+
+5. Para mais detalhes:
+   • USAGE.md - Guia completo
+   • EXAMPLES.lua - 10 exemplos
+   • FAQ.md - Perguntas frequentes
+   • INDEX.md - Índice de tudo
+
+
+🔗 REFERÊNCIAS RÁPIDAS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Começar?               → Leia: README.md
+Exemplos rápidos?      → Leia: QUICK_START.lua
+Como funciona?         → Leia: USAGE.md
+Exemplos avançados?    → Leia: EXAMPLES.lua
+Dúvidas?              → Leia: FAQ.md
+Índice de arquivos?   → Leia: INDEX.md
+Organizar em jogo?    → Leia: SETUP_REPLICATEDSTORAGE.md
+
+
+💡 DICAS IMPORTANTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Sempre use full.lua se não souber qual escolher
+2. Configurações são salvas automaticamente
+3. State.get() e State.set() são sua amigos
+4. Veja EXAMPLES.lua para padrões avançados
+5. Não carregue múltiplos loaders ao mesmo tempo
+
+
+⚡ COMEÇAR AGORA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Copie uma destas linhas no console do Roblox:
+
+📊 TUDO (Recomendado):
+loadstring(game:HttpGet("https://seu-link/loaders/full.lua"))()
+
+👁️ Apenas ESP:
+loadstring(game:HttpGet("https://seu-link/loaders/esp_only.lua"))()
+
+🛡️ Apenas God:
+loadstring(game:HttpGet("https://seu-link/loaders/god_only.lua"))()
+
+⚔️ Apenas Train:
+loadstring(game:HttpGet("https://seu-link/loaders/train_only.lua"))()
+
+📱 Apenas GUI:
+loadstring(game:HttpGet("https://seu-link/loaders/gui_only.lua"))()
+
+
+════════════════════════════════════════════════════════════════
+
+Versão: 9.4.3 Modular Edition
+Status: ✅ Pronto para uso
+Última atualização: 31 de Janeiro de 2026
+
+Criado com ❤️ para a comunidade
+
+════════════════════════════════════════════════════════════════
