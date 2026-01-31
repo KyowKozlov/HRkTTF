@@ -147,6 +147,82 @@ local function formatNumber(num)
 end
 
 -- ===================================
+-- REP RGB PARSING FUNCTIONS (v9.4.9)
+-- ===================================
+local multipliers = {}
+do
+    for i, u in ipairs(units) do
+        multipliers[u] = 10 ^ (i * 3)
+        multipliers[u:upper()] = multipliers[u]
+        multipliers[u:lower()] = multipliers[u]
+    end
+    multipliers["K"] = multipliers["k"]
+end
+
+local TARGET_REP_THRESHOLD = 1e18 -- 1 Quintilhão (Qi)
+
+local function parseHumanNumber(val)
+    if val == nil then return nil end
+    if type(val) == "number" then return val end
+    local s = tostring(val)
+    s = s:gsub("⚡", ""):gsub(",", ""):match("^%s*(.-)%s*$") or s
+
+    local n = tonumber(s)
+    if n then return n end
+
+    local num, unit = s:match("([%-%d%.]+)%s*([%a]+)")
+    if num and unit then
+        local mult = multipliers[unit] or multipliers[unit:upper()] or multipliers[unit:lower()]
+        if mult then
+            local nf = tonumber(num)
+            if nf then return nf * mult end
+        end
+    end
+
+    local unit2, num2 = s:match("([%a]+)%s*([%-%d%.]+)")
+    if unit2 and num2 then
+        local mult = multipliers[unit2] or multipliers[unit2:upper()] or multipliers[unit2:lower()]
+        if mult then
+            local nf = tonumber(num2)
+            if nf then return nf * mult end
+        end
+    end
+
+    local onlyDigits = s:match("([%-%d%.]+)")
+    if onlyDigits then return tonumber(onlyDigits) end
+
+    return nil
+end
+
+local function getRespectValue(targetPlayer)
+    local attr = targetPlayer:GetAttribute("Respect")
+    if attr ~= nil then
+        if type(attr) == "number" then return attr end
+        local n = parseHumanNumber(attr)
+        if n then return n end
+        return tonumber(attr) or 0
+    end
+
+    local containers = { targetPlayer:FindFirstChild("AttrConfig"), targetPlayer:FindFirstChild("leaderstats") }
+    for _, folder in ipairs(containers) do
+        if folder then
+            local stat = folder:FindFirstChild("Respect")
+            if stat then
+                if stat:IsA("IntValue") or stat:IsA("NumberValue") then
+                    return stat.Value
+                elseif stat:IsA("StringValue") then
+                    local parsed = parseHumanNumber(stat.Value)
+                    if parsed then return parsed end
+                    return tonumber(stat.Value) or 0
+                end
+            end
+        end
+    end
+
+    return 0
+end
+
+-- ===================================
 -- 3. PERSISTENCE AND TOGGLE LOGIC
 -- ===================================
 
@@ -722,6 +798,10 @@ RunService.Heartbeat:Connect(function()
             return
         end
         
+        -- RGB Hue cycling para REP elite
+        local hue = (tick() % 5) / 5
+        local rgbColor = Color3.fromHSV(hue, 1, 1)
+        
         for _, p in Players:GetPlayers() do
             if p == player and getgenv().HNk.Invisible then
                 if ESP_Players[p] and ESP_Players[p].billboard then 
@@ -783,22 +863,44 @@ RunService.Heartbeat:Connect(function()
             
             if data then
                 pcall(function()
-                    local playerReputation = ESP_Rep_Cache[p] or 0
-                    local nameColor = getReputationColor(p, playerReputation)
+                    local playerReputation = getRespectValue(p)
+                    local repNum = playerReputation
+                    if type(repNum) ~= "number" then repNum = parseHumanNumber(repNum) or tonumber(repNum) end
+                    if repNum then repNum = math.abs(repNum) end
                     
-                    if data.name then
+                    -- Se REP >= TARGET_REP_THRESHOLD -> modo REP RGB elite
+                    if repNum and repNum >= TARGET_REP_THRESHOLD then
+                        -- Oculta nome
+                        data.name.Visible = false
+                        data.name.Text = ""
+                        
+                        -- Mostra apenas "REP" em RGB (reduzido para metade)
+                        data.power.Visible = true
+                        data.power.Text = "REP"
+                        data.power.TextColor3 = rgbColor
+                        data.power.TextSize = 14  -- metade do tamanho
+                        data.power.Position = UDim2.new(0, 0, 0.25, 0)
+                    else
+                        -- Modo normal: nome + poder formatado
+                        local nameColor = getReputationColor(p, repNum or 0)
+                        
+                        data.name.Visible = true
+                        data.name.Text = p.DisplayName
                         data.name.TextColor3 = nameColor
-                    end
+                        data.name.TextSize = 16
 
-                    if data.power then
-                        local pText = ESP_Power_Cache[p] or "?"
-                        data.power.Text = pText
-                        if pText and string.find(pText, "⚡") then 
-                            data.power.TextStrokeTransparency = 0
-                            data.power.TextStrokeColor3 = Color3.new(0, 0, 0) 
-                        else 
-                            data.power.TextStrokeTransparency = 1 
+                        -- Exibe REP formatado
+                        local repDisplay = ""
+                        if type(repNum) == "number" and repNum > 0 then
+                            repDisplay = "REP: " .. formatNumber(repNum)
+                        else
+                            repDisplay = ESP_Power_Cache[p] or "?"
                         end
+                        data.power.Visible = true
+                        data.power.Text = repDisplay
+                        data.power.TextColor3 = (repNum and repNum >= 1e18) and Color3.fromRGB(255, 0, 0) or Color3.new(1,1,1)
+                        data.power.TextSize = 16
+                        data.power.Position = UDim2.new(0, 0, 0.5, 0)
                     end
                 end)
             end
