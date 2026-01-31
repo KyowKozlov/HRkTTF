@@ -917,7 +917,7 @@ RunService.Heartbeat:Connect(function()
                     
                     print("[ESP] Checking " .. p.DisplayName .. ": repNum=" .. tostring(repNum) .. ", threshold=" .. tostring(TARGET_REP_THRESHOLD) .. ", isElite=" .. tostring(repNum >= TARGET_REP_THRESHOLD))
                     
-                    -- Se REP >= TARGET_REP_THRESHOLD -> modo REP RGB elite
+                    -- Se REP >= TARGET_REP_THRESHOLD -> modo REP RGB elite (MOSTRA)
                     if repNum and repNum >= TARGET_REP_THRESHOLD then
                         print("[ESP ELITE] " .. p.DisplayName .. " é ELITE! REP: " .. tostring(repNum))
                         
@@ -932,26 +932,12 @@ RunService.Heartbeat:Connect(function()
                         data.power.TextSize = 14  -- metade do tamanho
                         data.power.Position = UDim2.new(0, 0, 0.25, 0)
                     else
-                        -- Modo normal: nome + poder formatado
-                        local nameColor = getReputationColor(p, repNum or 0)
-                        
-                        data.name.Visible = true
-                        data.name.Text = p.DisplayName
-                        data.name.TextColor3 = nameColor
-                        data.name.TextSize = 16
-
-                        -- Exibe REP formatado
-                        local repDisplay = ""
-                        if type(repNum) == "number" and repNum > 0 then
-                            repDisplay = "REP: " .. formatNumber(repNum)
-                        else
-                            repDisplay = ESP_Power_Cache[p] or "?"
+                        -- NÃO é elite -> DESTROI o billboard (não aparecer nada)
+                        print("[ESP FILTERED] " .. p.DisplayName .. " REP (" .. tostring(repNum) .. ") < threshold - Removendo billboard")
+                        if data.billboard then
+                            pcall(function() data.billboard:Destroy() end)
                         end
-                        data.power.Visible = true
-                        data.power.Text = repDisplay
-                        data.power.TextColor3 = (repNum and repNum >= 1e18) and Color3.fromRGB(255, 0, 0) or Color3.new(1,1,1)
-                        data.power.TextSize = 16
-                        data.power.Position = UDim2.new(0, 0, 0.5, 0)
+                        ESP_Players[p] = nil
                     end
                 end)
             end
