@@ -67,6 +67,11 @@ function GUI.createToggle(name, prop, icon, scroll)
         updateToggle()
     end)
 
+    -- Listener para mudanças externas
+    State.onChange(prop, function()
+        updateToggle()
+    end)
+
     updateToggle()
     toggleFrame.Parent = scroll
 end

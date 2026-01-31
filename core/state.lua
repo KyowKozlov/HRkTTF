@@ -2,20 +2,22 @@
 -- STATE MODULE - Gerenciador de Estado Global
 -- ===================================
 
--- Carrega Config e Utils se disponíveis via loadstring, senão tenta via require
-local Config
-if getgenv().HNkConfig then
+local Config = getgenv().HNkConfig
+local Utils = getgenv().HNkUtils
+
+-- Aguardar Config e Utils carregarem via getgenv
+local maxWait = 50
+local attempts = 0
+while (not Config or not Utils) and attempts < maxWait do
     Config = getgenv().HNkConfig
-else
-    Config = require(script.Parent:WaitForChild("config"))
+    Utils = getgenv().HNkUtils
+    if Config and Utils then break end
+    task.wait(0.05)
+    attempts = attempts + 1
 end
 
-local Utils
-if getgenv().HNkUtils then
-    Utils = getgenv().HNkUtils
-else
-    Utils = require(script.Parent:WaitForChild("utils"))
-end
+if not Config then error("[State]: Config não foi carregado!") end
+if not Utils then error("[State]: Utils não foi carregado!") end
 
 local State = {}
 local listeners = {}
@@ -27,15 +29,17 @@ for k, v in pairs(Config.DEFAULTS) do
 end
 
 -- Carrega configurações salvas
-local saved = Utils.loadConfig()
-if saved then
-    for k, v in pairs(saved) do
-        if getgenv().HNk[k] ~= nil and type(getgenv().HNk[k]) == type(v) then
-            getgenv().HNk[k] = v
+pcall(function()
+    local saved = Utils.loadConfig()
+    if saved then
+        for k, v in pairs(saved) do
+            if getgenv().HNk[k] ~= nil and type(getgenv().HNk[k]) == type(v) then
+                getgenv().HNk[k] = v
+            end
         end
+        print("[HNk State]: Configurações carregadas com sucesso")
     end
-    print("[HNk State]: Configurações carregadas com sucesso")
-end
+end)
 
 -- Sistema de listeners para mudanças de estado
 function State.onChange(key, callback)
@@ -55,7 +59,7 @@ function State.set(key, value)
                 pcall(callback, value)
             end
         end
-        Utils.saveConfig(getgenv().HNk)
+        pcall(function() Utils.saveConfig(getgenv().HNk) end)
     end
 end
 
